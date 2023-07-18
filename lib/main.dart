@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
-
 import 'package:background_location_tracker/background_location_tracker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,11 +30,13 @@ Future<void> main() async {
     ),
   );
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 @override
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -68,7 +67,7 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Container(
+        body: SizedBox(
           width: double.infinity,
           child: Column(
             children: [
@@ -76,15 +75,14 @@ class _MyAppState extends State<MyApp> {
                 child: Column(
                   children: [
                     MaterialButton(
-                      child: const Text('Request location permission'),
                       onPressed: _requestLocationPermission,
+                      child: const Text('Request location permission'),
                     ),
                     if (Platform.isAndroid) ...[
                       const Text(
                           'Permission on android is only needed starting from sdk 33.'),
                     ],
                     MaterialButton(
-                      child: const Text('Start Tracking'),
                       onPressed: isTracking
                           ? null
                           : () async {
@@ -92,9 +90,9 @@ class _MyAppState extends State<MyApp> {
                             .startTracking();
                         setState(() => isTracking = true);
                       },
+                      child: const Text('Start Tracking'),
                     ),
                     MaterialButton(
-                      child: const Text('Stop Tracking'),
                       onPressed: isTracking
                           ? () async {
                         await LocationDao().clear();
@@ -104,7 +102,18 @@ class _MyAppState extends State<MyApp> {
                         setState(() => isTracking = false);
                       }
                           : null,
+                      child: const Text('Stop Tracking'),
                     ),
+                    ElevatedButton(onPressed: () async {
+
+                      SharedPreferences af = await SharedPreferences.getInstance();
+                      af.setBool("d",true);
+                    }, child: Text("Add")),
+                    ElevatedButton(onPressed: () async {
+
+                      SharedPreferences af = await SharedPreferences.getInstance();
+                      af.setBool("d",false);
+                    }, child: Text("remove")),
                   ],
                 ),
               ),
@@ -115,8 +124,8 @@ class _MyAppState extends State<MyApp> {
               ),
               const Text('Locations'),
               MaterialButton(
-                child: const Text('Refresh locations'),
                 onPressed: _getLocations,
+                child: const Text('Refresh locations'),
               ),
               Expanded(
                 child: Builder(
@@ -204,6 +213,8 @@ class LocationDao {
       _prefs ??= await SharedPreferences.getInstance();
 
   Future<void> saveLocation(BackgroundLocationUpdateData data) async {
+    SharedPreferences sf = await SharedPreferences.getInstance();
+    print(sf.getBool("d") ?? "");
     final locations = await getLocations();
     locations.add(
         '${DateTime.now().toIso8601String()}       ${data.lat},${data.lon}');
